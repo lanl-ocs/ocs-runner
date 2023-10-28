@@ -61,10 +61,11 @@ void OnResultsFetched(void* arg, const struct spdk_nvme_cpl* cpl) {
             spdk_nvme_cpl_get_status_string(&cpl->status));
     abort();
   } else if (cpl->cdw1 != s->total_result_size) {
-    fprintf(stderr,
-            "Expecting %d bytes not got %d in total result bytes... "
-            "not aborting but something must be wrong\n",
-            s->total_result_size, cpl->cdw1);
+    fprintf(
+        stderr,
+        "The device said that total result is %d bytes but now it says it's %d "
+        "bytes... not aborting but something must be wrong\n",
+        s->total_result_size, cpl->cdw1);
   }
   fprintf(stderr, ">> query results obtained: %d B / %d B\n", cpl->cdw0,
           cpl->cdw1);
