@@ -10,7 +10,7 @@ TARGET=ocs-runner
 all: ${TARGET}
 
 ${TARGET}: runner.cc
-	$(CXX) -O2 -DNDEBUG $(CFLAGS) -o $@ $^ -pthread -Wl,--allow-multiple-definition -Wl,--whole-archive -Wl,-Bstatic $(SPDK_LIB) $(DPDK_LIB) -Wl,-Bdynamic -Wl,--no-whole-archive $(SYS_LIB)
+	$(CXX) -O2 -DNDEBUG $(CFLAGS) -o $@ $^ -pthread -Wl,--allow-multiple-definition -Wl,-Bstatic -Wl,--whole-archive $(SPDK_LIB) $(DPDK_LIB) -Wl,--no-whole-archive -Wl,-Bdynamic -libverbs -lrdmacm $(SYS_LIB)
 
 clean:
 	rm -f $(TARGET)
