@@ -134,14 +134,16 @@ void RunOneQuery(struct spdk_nvme_ctrlr* ctrlr, struct spdk_nvme_ns* ns,
   memset(&cmd, 0, sizeof(cmd));
   cmd.opc = 0x95;  // Write execution plan
   cmd.nsid = 0x1;
-  // object space ID
+  // Object space ID
   cmd.rsvd2 = 0;
-  // flag: type=s3 select | out=csv | run=yes | wait=yes
+  // Flags: type=s3 select | out=csv | run=yes | wait=yes
   cmd.rsvd3 = 0x020203;
   // Amount of query string transferred
   cmd.cdw10 = query.size();
   // Target object ID
   cmd.cdw11 = obj_id;
+  // Plan ID and offset
+  cmd.cdw12 = 0xFFFF0000;
   // Total query string size
   cmd.cdw14 = cmd.cdw10;
   QueryState s;
