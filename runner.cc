@@ -36,10 +36,12 @@
 #include <spdk/nvmf_spec.h>
 
 #include <getopt.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -199,7 +201,7 @@ void attach_cb(void* cb_ctx, const struct spdk_nvme_transport_id* trid,
 }
 
 void probe_and_process(const struct spdk_nvme_transport_id* trid,
-                       const char* subnqn) {
+                       const char* subnqn, const std::vector<int>& ids) {
   struct probe_cb_ctx ctx;
   memset(&ctx, 0, sizeof(ctx));
   ctx.subnqn = subnqn;
@@ -222,7 +224,9 @@ void probe_and_process(const struct spdk_nvme_transport_id* trid,
       "min(z) as Z, avg(e) AS E FROM s3object WHERE "
       "x > 1.5 AND x < 1.6 AND y > 1.5 AND y < 1.6 AND z > 1.5 AND z < 1.6 "
       "GROUP BY vertex_id ORDER BY E");
-  RunOneQuery(ctx.ctrlr, ns, query, 0);
+  for (int id : ids) {
+    RunOneQuery(ctx.ctrlr, ns, query, id);
+  }
   spdk_nvme_detach(ctx.ctrlr);
   fprintf(stderr, "Done!\n");
 }
@@ -280,7 +284,12 @@ int main(int argc, char* argv[]) {
            traddr, trsvcid, SPDK_NVMF_DISCOVERY_NQN);
   struct spdk_nvme_transport_id trid;
   spdk_nvme_transport_id_parse(&trid, tmp);
-  probe_and_process(&trid, subnqn);
+  std::vector<int> obj_ids;
+  int input;
+  while (std::cin >> input) {
+    obj_ids.push_back(input);
+  }
+  probe_and_process(&trid, subnqn, obj_ids);
   spdk_env_fini();
   return 0;
 }
