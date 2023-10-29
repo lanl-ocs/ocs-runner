@@ -242,7 +242,7 @@ void probe_and_process(const struct spdk_nvme_transport_id* trid,
   }
   const uint64_t t1 = current_micros();
   spdk_nvme_detach(ctx.ctrlr);
-  fprintf(stderr, "Total query time: %.2f\n", double(t1 - t0) / 1000000);
+  fprintf(stderr, "Total query time: %.2f s\n", double(t1 - t0) / 1000000);
   fprintf(stderr, "Total data read bytes: %lld\n", total_size);
   fprintf(stderr, "Done!\n");
 }
