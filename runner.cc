@@ -213,6 +213,7 @@ void attach_cb(void* cb_ctx, const struct spdk_nvme_transport_id* trid,
 
 void probe_and_process(const struct spdk_nvme_transport_id* trid,
                        const char* subnqn, const std::vector<int>& ids) {
+  const uint64_t t0 = current_micros();
   struct probe_cb_ctx ctx;
   memset(&ctx, 0, sizeof(ctx));
   ctx.subnqn = subnqn;
@@ -236,12 +237,11 @@ void probe_and_process(const struct spdk_nvme_transport_id* trid,
       "x > 1.5 AND x < 1.6 AND y > 1.5 AND y < 1.6 AND z > 1.5 AND z < 1.6 "
       "GROUP BY vertex_id ORDER BY E");
   long long total_size = 0;
-  const uint64_t t0 = current_micros();
   for (int i = 0; i < ids.size(); i++) {
     total_size += RunOneQuery(ctx.ctrlr, ns, query, ids[i]);
   }
-  const uint64_t t1 = current_micros();
   spdk_nvme_detach(ctx.ctrlr);
+  const uint64_t t1 = current_micros();
   fprintf(stderr, "Total query time: %.2f s\n", double(t1 - t0) / 1000000);
   fprintf(stderr, "Total data read bytes: %lld\n", total_size);
   fprintf(stderr, "Done!\n");
