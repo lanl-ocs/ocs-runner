@@ -116,8 +116,8 @@ void OnQueryPlanSubmitted(void* arg, const struct spdk_nvme_cpl* cpl) {
   }
 }
 
-void RunOneQuery(struct spdk_nvme_ctrlr* ctrlr, struct spdk_nvme_ns* ns,
-                 const std::string& query, int obj_id) {
+int RunOneQuery(struct spdk_nvme_ctrlr* ctrlr, struct spdk_nvme_ns* ns,
+                const std::string& query, int obj_id) {
   struct spdk_nvme_qpair* const qp =
       spdk_nvme_ctrlr_alloc_io_qpair(ctrlr, NULL, 0);
   if (!qp) {
@@ -172,6 +172,7 @@ void RunOneQuery(struct spdk_nvme_ctrlr* ctrlr, struct spdk_nvme_ns* ns,
   }
   spdk_free(buf);
   spdk_nvme_ctrlr_free_io_qpair(qp);
+  return s.total_result_size;
 }
 
 }  // namespace
@@ -234,13 +235,15 @@ void probe_and_process(const struct spdk_nvme_transport_id* trid,
       "min(z) as Z, avg(e) AS E FROM s3object WHERE "
       "x > 1.5 AND x < 1.6 AND y > 1.5 AND y < 1.6 AND z > 1.5 AND z < 1.6 "
       "GROUP BY vertex_id ORDER BY E");
-  uint64_t t0 = current_micros();
+  long long total_size = 0;
+  const uint64_t t0 = current_micros();
   for (int i = 0; i < ids.size(); i++) {
-    RunOneQuery(ctx.ctrlr, ns, query, ids[i]);
+    total_size += RunOneQuery(ctx.ctrlr, ns, query, ids[i]);
   }
-  uint64_t t1 = current_micros();
-  fprintf(stderr, "Total query time: %.2f\n", double(t1 - t0) / 1000000);
+  const uint64_t t1 = current_micros();
   spdk_nvme_detach(ctx.ctrlr);
+  fprintf(stderr, "Total query time: %.2f\n", double(t1 - t0) / 1000000);
+  fprintf(stderr, "Total data read bytes: %lld\n", total_size);
   fprintf(stderr, "Done!\n");
 }
 
