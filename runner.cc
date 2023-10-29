@@ -91,9 +91,9 @@ void OnQueryPlanSubmitted(void* arg, const struct spdk_nvme_cpl* cpl) {
   memset(&cmd, 0, sizeof(cmd));
   cmd.opc = 0x92;  // Get compute result
   cmd.nsid = 0x1;
-  // object space ID
+  // Object space ID
   cmd.rsvd2 = 0;
-  // flag: type=s3 select | out=csv | head=no | release resource=yes
+  // Flags: type=s3 select | out=csv | head=no | release resource=yes
   cmd.rsvd3 = 0x020202;
   // Host buffer size
   cmd.cdw10 = s->buf_size;
@@ -142,8 +142,10 @@ void RunOneQuery(struct spdk_nvme_ctrlr* ctrlr, struct spdk_nvme_ns* ns,
   cmd.cdw10 = query.size();
   // Target object ID
   cmd.cdw11 = obj_id;
-  // Plan ID and offset
+  // Plan ID
   cmd.cdw12 = 0xFFFF0000;
+  // Plan offset
+  cmd.cdw13 = 0;
   // Total query string size
   cmd.cdw14 = cmd.cdw10;
   QueryState s;
