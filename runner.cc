@@ -37,10 +37,12 @@
 
 #include <getopt.h>
 #include <iostream>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <sys/time.h>
 #include <vector>
 
 namespace {
@@ -174,6 +176,14 @@ void RunOneQuery(struct spdk_nvme_ctrlr* ctrlr, struct spdk_nvme_ns* ns,
 
 }  // namespace
 
+static inline uint64_t current_micros() {
+  uint64_t result;
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  result = static_cast<uint64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
+  return result;
+}
+
 struct probe_cb_ctx {
   struct spdk_nvme_ctrlr* ctrlr;
   const char* subnqn;
@@ -181,10 +191,10 @@ struct probe_cb_ctx {
 
 bool probe_cb(void* cb_ctx, const struct spdk_nvme_transport_id* trid,
               struct spdk_nvme_ctrlr_opts* opts) {
-  printf("Found %s+%s://%s:%s/%s\n",
-         spdk_nvme_transport_id_trtype_str(trid->trtype),
-         spdk_nvme_transport_id_adrfam_str(trid->adrfam), trid->traddr,
-         trid->trsvcid, trid->subnqn);
+  fprintf(stderr, "Found %s+%s://%s:%s/%s\n",
+          spdk_nvme_transport_id_trtype_str(trid->trtype),
+          spdk_nvme_transport_id_adrfam_str(trid->adrfam), trid->traddr,
+          trid->trsvcid, trid->subnqn);
   if (strcmp(static_cast<struct probe_cb_ctx*>(cb_ctx)->subnqn, trid->subnqn) ==
       0) {
     return true;
@@ -197,7 +207,7 @@ void attach_cb(void* cb_ctx, const struct spdk_nvme_transport_id* trid,
                struct spdk_nvme_ctrlr* ctrlr,
                const struct spdk_nvme_ctrlr_opts* opts) {
   static_cast<struct probe_cb_ctx*>(cb_ctx)->ctrlr = ctrlr;
-  printf("Attached to %s\n", trid->subnqn);
+  fprintf(stderr, "Attached to %s\n", trid->subnqn);
 }
 
 void probe_and_process(const struct spdk_nvme_transport_id* trid,
@@ -224,9 +234,12 @@ void probe_and_process(const struct spdk_nvme_transport_id* trid,
       "min(z) as Z, avg(e) AS E FROM s3object WHERE "
       "x > 1.5 AND x < 1.6 AND y > 1.5 AND y < 1.6 AND z > 1.5 AND z < 1.6 "
       "GROUP BY vertex_id ORDER BY E");
-  for (int id : ids) {
-    RunOneQuery(ctx.ctrlr, ns, query, id);
+  uint64_t t0 = current_micros();
+  for (int i = 0; i < ids.size(); i++) {
+    RunOneQuery(ctx.ctrlr, ns, query, ids[i]);
   }
+  uint64_t t1 = current_micros();
+  fprintf(stderr, "Total query time: %.2f\n", double(t1 - t0) / 1000000);
   spdk_nvme_detach(ctx.ctrlr);
   fprintf(stderr, "Done!\n");
 }
