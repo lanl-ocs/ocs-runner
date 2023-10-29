@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "spdk_env_init() failed\n");
     exit(EXIT_FAILURE);
   }
-  char tmp[100];
+  char tmp[150];
   snprintf(tmp, sizeof(tmp),
            "trtype:%s adrfam:%s traddr:%s trsvcid:%d subnqn:%s", trtype, adrfam,
            traddr, trsvcid, SPDK_NVMF_DISCOVERY_NQN);
