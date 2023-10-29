@@ -43,7 +43,7 @@
 namespace {
 
 struct QueryState {
-  QueryState() {}  // Not initialized for performance
+  QueryState() {}  // Intentionally not initialized for performance
   struct spdk_nvme_ctrlr* ctrlr;
   struct spdk_nvme_qpair* qp;
   size_t buf_size;
@@ -70,7 +70,7 @@ void OnResultsFetched(void* arg, const struct spdk_nvme_cpl* cpl) {
   fprintf(stderr, ">> query results obtained: %d B / %d B\n", cpl->cdw0,
           cpl->cdw1);
   s->buf[cpl->cdw0] = 0;
-  printf("%s\n", s->buf);
+  printf("%s", s->buf);
   s->completed = 1;
 }
 
