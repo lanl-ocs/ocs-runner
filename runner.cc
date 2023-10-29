@@ -215,7 +215,7 @@ void probe_and_process(const struct spdk_nvme_transport_id* trid,
     return;
   }
   std::string query(
-      "SELECT min(vertex_id) AS VID, min(x) as X, min(y) as Y "
+      "SELECT min(vertex_id) AS VID, min(x) as X, min(y) as Y, "
       "min(z) as Z, avg(e) AS E FROM s3object WHERE "
       "x > 1.5 AND x < 1.6 AND y > 1.5 AND y < 1.6 AND z > 1.5 AND z < 1.6 "
       "GROUP BY vertex_id ORDER BY E");
