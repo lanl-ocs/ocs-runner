@@ -35,6 +35,7 @@
 #include <spdk/nvme.h>
 #include <spdk/nvmf_spec.h>
 
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -226,22 +227,53 @@ void probe_and_process(const struct spdk_nvme_transport_id* trid,
   fprintf(stderr, "Done!\n");
 }
 
-int main(int argc, char* argv[]) {
-  int rc;
-  struct spdk_env_opts opts;
-  spdk_env_opts_init(&opts);
-  opts.name = "runner";
-  rc = spdk_env_init(&opts);
-  if (rc != 0) {
-    fprintf(stderr, "spdk_env_init() failed\n");
-    exit(EXIT_FAILURE);
-  }
+void usage(char* argv0, const char* msg) {
+  if (msg) fprintf(stderr, "%s: %s\n", argv0, msg);
+  fprintf(stderr, "==============\n");
+  fprintf(stderr, "Usage: sudo %s [options]\n\n", argv0);
+  fprintf(stderr,
+          "-t      trtype       :  Target transport type (e.g.: rdma)\n");
+  fprintf(stderr, "-a      traddr       :  Target address (e.g.: 127.0.0.1)\n");
+  fprintf(stderr, "-s      trsvcid      :  Service port (e.g.: 4420)\n");
+  fprintf(stderr, "-n      subnqn       :  Name of subsystem\n");
+  fprintf(stderr, "==============\n");
+  exit(EXIT_FAILURE);
+}
 
+int main(int argc, char* argv[]) {
+  int c;
   const char* trtype = "tcp";
   const char* adrfam = "ipv4";
   const char* traddr = "127.0.0.1";
   const char* subnqn = "nqn.2023-10.gov.lanl:xxx:ssd1";
   int trsvcid = 4420;
+  while ((c = getopt(argc, argv, "a:n:s:t:h")) != -1) {
+    switch (c) {
+      case 'a':
+        traddr = optarg;
+        break;
+      case 'n':
+        subnqn = optarg;
+        break;
+      case 's':
+        trsvcid = atoi(optarg);
+        break;
+      case 't':
+        trtype = optarg;
+        break;
+      case 'h':
+      default:
+        usage(argv[0], NULL);
+    }
+  }
+  struct spdk_env_opts opts;
+  spdk_env_opts_init(&opts);
+  opts.name = "runner";
+  int rc = spdk_env_init(&opts);
+  if (rc != 0) {
+    fprintf(stderr, "spdk_env_init() failed\n");
+    exit(EXIT_FAILURE);
+  }
   char tmp[100];
   snprintf(tmp, sizeof(tmp),
            "trtype:%s adrfam:%s traddr:%s trsvcid:%d subnqn:%s", trtype, adrfam,
